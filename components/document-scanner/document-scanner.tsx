@@ -22,28 +22,6 @@ export const DocumentScanner = () => {
     }, []);    
 
 
-    useEffect(() => {
-        console.log("opencvLoaded - ", opencvLoaded)
-        if (opencvLoaded) {
-          const cv = window.cv;
-    
-          const image = imageRef.current;
-          const canvas = canvasRef.current;
-    
-          
-          if (image && canvas && cv) {
-            const src = cv.imread(image);
-            console.log("src")
-            // const dst = new cv.Mat();
-    
-            // cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-            // cv.imshow(canvas, dst);
-    
-            // src.delete();
-            // dst.delete();
-          }
-        }
-    }, [opencvLoaded]);
     const onHandleProcessImage = () => {
         console.log("clicked")
         if (opencvLoaded) {
