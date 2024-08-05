@@ -1,3 +1,2 @@
 export * from './document-scanner'
-
-export * from '../scanify/scannWithScannify'
+// export * from './document-scanner-2'
