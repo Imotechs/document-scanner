@@ -14,9 +14,11 @@
     "jscanify": "^1.2.0",
     "jsdom": "^24.1.1",
     "next": "14.2.5",
+    "opencv-react": "^0.0.6",
     "opencv.js": "^1.2.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-perspective-cropper": "^0.2.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.6.0",

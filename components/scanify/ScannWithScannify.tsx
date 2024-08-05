@@ -1,7 +1,8 @@
 
 "use client";
 import React, { useRef, useEffect, useState } from 'react';
-
+// import { OpenCvProvider, useOpenCv } from 'opencv-react';
+import Cropper from 'react-perspective-cropper';
 import { loadOpenCV } from '@/lib/opencv';
 import { ImageUploader } from './ImageUploader';
 const ScannWithScannify = () => {
@@ -50,7 +51,7 @@ const ScannWithScannify = () => {
             ></canvas> 
             
             </div>
-            <ImageUploader onImageUpload={handleImageUpload} />
+            {/* <ImageUploader onImageUpload={handleImageUpload} /> */}
 
         </div>
       )
