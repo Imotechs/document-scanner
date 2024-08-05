@@ -1,14 +1,11 @@
 
 // import components
-import { DocumentScanner } from "@/components/document-scanner";
+import { DocumentScanner, DocumentScanner3 } from "@/components/document-scanner";
 
 export default function Home() {
 	return (
 		<main className="">
-			<div>
-				Welcome to Document Scanner
-			</div>
-			<DocumentScanner />
+			<DocumentScanner3 />
 		</main>
 	);
 }
