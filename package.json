@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.4.0",
     "heroicons": "^2.1.5",
     "http-proxy-agent": "^7.0.2",
     "jscanify": "^1.2.0",

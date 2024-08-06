@@ -2,6 +2,7 @@
 
 import React, {useCallback, ForwardedRef, forwardRef,useRef,useState } from 'react';
 import Cropper from 'react-perspective-cropper'
+import {DownloadOutlined,BorderOutlined,ScanOutlined,UndoOutlined, StarTwoTone } from '@ant-design/icons';
 
 interface ImageUploaderProps {
     onImageUpload: (file: File) => void;
@@ -59,10 +60,19 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
       };
       const res = await cropperRef.current.done(filterParams);
       console.log('Processed Image:', res);
+      
     } catch (e) {
       console.error('Error processing image:', e);
     }
   };
+
+  function downloadImage (ImageURL:any){
+  
+    // const downloadLink = document.createElement('a');
+    //       downloadLink.href = ImageURL.current;
+    //       downloadLink.download = 'image.png';
+    //       downloadLink.click();
+  }
     return (
 <>
 
@@ -70,7 +80,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
             <div className="bg-gray-200 p-4">
                 <h1 className="text-2xl font-bold">Document Scanner</h1>
             </div>
-            <div className="flex-grow bg-gray-100 p-10 flex items-center justify-center">
+            <div className="flex-grow bg-gray-100 p-5 flex items-center justify-center">
 
                 {!uploadedImage && (
                     <div className=" h-96 w-full relative border-2 items-center border-gray-400 border-dashed ">
@@ -126,9 +136,20 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
             </div>
 
             <div className="flex w-full fixed bottom-0 p-5 justify-end space-x-2">
-            <button onClick={()=>handleProcessImage()} className="bg-red-500 text-white px-4 py-2 rounded">Crop-out</button>
-              
+            {/* <button  className="bg-red-500 text-white px-4 py-2 rounded">Crop-out</button> */}
             </div>
+            
+            {/* nav icons */}
+            <div className=" rounded-[30px] mt-0 mb-5  bottom-0 p-5 items-center justify-center space-x-5 bg-gray-900 mx-auto max-w-max">
+
+                        <DownloadOutlined title="Download"onClick={()=>downloadImage(cropperRef)} className="bg-blue-500 text-black px-4 py-2 rounded"
+                        />
+                        <BorderOutlined title="Crop image"  onClick={()=>handleProcessImage()} className="bg-blue-500 text-black px-4 py-2 rounded" />
+                        <StarTwoTone title="Star" className="bg-blue-500 text-black px-4 py-2 rounded"/>
+                        <ScanOutlined title="Scan" className="bg-blue-500 text-black px-4 py-2 rounded" />
+                        <UndoOutlined title="Undo"  className="bg-blue-500 text-black px-4 py-2 rounded"/>
+        </div>
+
         </div>
 
         
