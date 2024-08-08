@@ -8,10 +8,10 @@ import { loadOpenCV } from '@/lib/opencv';
 import CropperComponent2 from '@/components/scanify/CroperComponent'
 import { DocumentScanner } from '@/components/scanify/DocumentScanner';
 interface CropState {
-    x: 0;
-    y: 0;
-    width: 100;
-    height: 100;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   }
   const AnyCropper = Cropper as any;
 
@@ -23,6 +23,7 @@ const Lab3Page = () => {
     const ScanRef = useRef<any>(null);
     const [scann, setScann] = useState(true)
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
 
 
   const onDragStop = useCallback((state: CropState) => setCropState(state), []);
@@ -87,6 +88,7 @@ if (!opencvLoaded) {
     }
   }
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setScann(true)
         const file = event.target.files?.[0];
         if (file) {
             setUploadedImage(file);
@@ -95,6 +97,16 @@ if (!opencvLoaded) {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = canvasRef.current;
+                    setImageSize({ width: img.width, height: img.height });
+
+                    const initialCropState: CropState = {
+                        x: img.width * 0.3, // 10% from the left
+                        y: img.height * 0.3, // 10% from the top
+                        width: img.width * 0.8, // 80% of the image width
+                        height: img.height * 0.8, // 80% of the image height
+                      };
+                      setCropState(initialCropState);
+
                     if (canvas) {
                         const ctx = canvas.getContext('2d');
                         if (ctx) {
@@ -147,9 +159,10 @@ function lastCanvase (){
             
 const downloadFile = () => {
 
-        let canvas =canvasRef.current
+        var canvas =canvasRef.current
         if(!scann){
-           let canvas = lastCanvase() }
+        canvas = lastCanvase()! 
+        }
         if (canvas) {
             const ctx = canvas.getContext('2d');
             console.log('canvas')
@@ -168,7 +181,6 @@ const downloadFile = () => {
     
                 // Create an image from the canvas
                 const imageUrl = canvas.toDataURL('image/png');
-                console.log(imageUrl)
                 // Create a link element and click it to download the image
                 const link = document.createElement('a');
                 link.href = imageUrl;
@@ -258,13 +270,14 @@ const downloadFile = () => {
         onChange={onChange}
         onDragStop={onDragStop}
         cropperRef={cropperRef}
+        cropState={cropState} 
         pointSize={10}
-        lineWidth={2}
+        lineWidth={3}
         pointBgColor="red"
-        pointBorder="2px solid black"
+        pointBorder="4px solid black"
         lineColor="blue"
-        maxWidth={500}
-        maxHeight={500}
+        maxWidth=  {imageSize?.width}
+        maxHeight= {imageSize?.height}
         openCvPath="/opencv.js"
       /> </>}
 
