@@ -77,8 +77,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
 <>
 
         <div className="flex flex-col min-h-screen relative">
-            <div className="bg-gray-200 p-4">
-                <h1 className="text-2xl font-bold">Document Scanner</h1>
+            <div className="bg-gray-600 p-4">
+                <h1 className="text-2xl text-white font-bold" id='header'>Document Scanner</h1>
             </div>
             <div className="flex-grow bg-gray-100 p-5 flex items-center justify-center">
 
@@ -140,12 +140,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
             </div>
             
             {/* nav icons */}
-            <div className=" rounded-[30px] mt-0 mb-5  bottom-0 p-5 items-center justify-center space-x-5 bg-gray-900 mx-auto max-w-max">
+            <div className=" rounded-[30px] mt-0 mb-5  bottom-0 p-5 items-center justify-center space-x-5 bg-gray-700 mx-auto max-w-max">
 
                         <DownloadOutlined title="Download"onClick={()=>downloadImage(cropperRef)} className="bg-blue-500 text-black px-4 py-2 rounded"
                         />
                         <BorderOutlined title="Crop image"  onClick={()=>handleProcessImage()} className="bg-blue-500 text-black px-4 py-2 rounded" />
-                        <StarTwoTone title="Star" className="bg-blue-500 text-black px-4 py-2 rounded"/>
+                        <StarTwoTone title="Star" className="bg-blue-200 text-black px-4 py-2 rounded"/>
                         <ScanOutlined title="Scan" className="bg-blue-500 text-black px-4 py-2 rounded" />
                         <UndoOutlined title="Undo"  className="bg-blue-500 text-black px-4 py-2 rounded"/>
         </div>

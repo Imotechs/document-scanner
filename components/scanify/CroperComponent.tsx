@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect,useRef, useCallback } from 'react';
+
 import { loadOpenCV } from '@/lib/opencv';
 import { ImageUploader } from './ImageUploader';
 
@@ -23,7 +24,8 @@ const CropperComponent = () => {
 
 
   if (!opencvLoaded) {
-    return <div>Loading OpenCV...</div>;
+  
+    return document.getElementById('header')?.innerHTML=='Loading...';
   }
   const handleImageUpload = (file: File) => {
     setUploadedImage(file);
