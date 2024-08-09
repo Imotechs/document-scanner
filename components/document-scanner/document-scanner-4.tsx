@@ -10,10 +10,12 @@ import { loadOpenCV } from '@/lib/opencv';
 import { Button } from "@/components/ui/button"
 
 // import icons
+import { MdOutlineDocumentScanner } from "react-icons/md";
 import { LuScanLine } from "react-icons/lu";
 import { FiCrop } from "react-icons/fi";
 import { LiaUndoAltSolid } from "react-icons/lia";
-import { CiUndo } from "react-icons/ci";
+import { GoDotFill } from "react-icons/go";
+import { GrDownload } from "react-icons/gr";
 
 export const DocumentScanner4 = () => {
     const [isOpencvLoaded, setIsOpencvLoaded] = useState(false);
@@ -71,8 +73,10 @@ export const DocumentScanner4 = () => {
 
     const onHandleCropImage = () => {
         const canvas = canvasRef.current;
+        const cornerPointsToCrop = cornerPoints
         if (canvas) {
-            docScanner.cropImage(canvas, cornerPoints);
+            setCornerPoints([])
+            docScanner.cropImage(canvas, cornerPointsToCrop);
         }
     };
     
@@ -135,15 +139,7 @@ export const DocumentScanner4 = () => {
     };
 
     const handleDrawCircles = (points: Point[]) => {
-        // const { scaleX, scaleY } = scaling;  // Assume scaling is a state storing scaleX and scaleY
         const circlesData = points.map(point => ({ x: point.x, y: point.y, radius: 5 }));
-        // const circlesData = points.map(point => ({
-        //     x: point.x * scaleX,
-        //     y: point.y * scaleY,
-        //     radius: 5
-        // }));
-
-        // setCircles(circlesData);
         drawCirclesAndLines(circlesData);
     };
 
@@ -196,18 +192,60 @@ export const DocumentScanner4 = () => {
         setCornerPoints(updatedCircles)
     };
 
+    const handleDownloadFile = () => {
+
+        var canvas =canvasRef.current
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        console.log('canvas')
+
+        if (ctx) {
+            // Draw watermark
+            ctx.font = 'bold 40px Arial';
+            ctx.fillStyle = 'red';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const watermarkText = 'Document Scanner';
+            const x = canvas.width / 2;
+            const y = canvas.height - 50; // Adjust the position as needed
+
+            ctx.fillText(watermarkText, x, y);
+
+            // Create an image from the canvas
+            const imageUrl = canvas.toDataURL('image/png');
+            // Create a link element and click it to download the image
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = 'scanner-image.png';
+            link.click();
+        }
+    };        
+
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
             {/* Header */}
-            <header className="bg-white shadow p-6">
-                <h1 className="text-3xl font-semibold text-gray-700">Document Scanner</h1>
-                <p className="text-sm text-gray-500 mt-1">Scanner status - {isOpencvLoaded ? "Loaded" : "Not loaded"}</p>
+            <header className="p-4">
+                <div className="w-fit bg-white shadow p-6 rounded-md">
+                    <h1 className="flex text-3xl font-semibold text-gray-700 space-x-2">
+                        <MdOutlineDocumentScanner />
+                        <span>Document Scanner</span>
+                    </h1>
+                    <div className="flex text-sm text-gray-500 mt-1 space-x-2">
+                        <span className="font-medium">Scanner status : </span>
+                        {   
+                            isOpencvLoaded ? 
+                                <span className="flex"><GoDotFill className="w-5 h-5 text-green-600" /> Ready </span>  : 
+                                <span className="flex"><GoDotFill className="w-5 h-5  text-red-600" /> Loading... </span>
+                        }
+                    </div>
+                </div>
             </header>
 
-            <div className="flex flex-col w-full items-center justify-center p-6">
+            <div className="flex flex-grow flex-col w-full items-center justify-center p-2">
                 {
                     !isOpencvLoaded ?
-                        <div className="h-64 w-64 max-w-2xl relative border-2 border-neutral-300 shadow rounded-lg my-20">
+                        <div className="h-64 w-64 max-w-2xl relative border-2 border-neutral-300 shadow rounded-lg my-5">
                             <div className="h-full w-full bg-white absolute z-1 flex justify-center items-center top-0 rounded-lg">
                                 <div className="flex flex-col items-center ">
 
@@ -220,7 +258,7 @@ export const DocumentScanner4 = () => {
 
                 }
                 {!isFileSelected && isOpencvLoaded && (
-                    <div className="h-96 w-full max-w-2xl relative border-4 border-gray-300 border-dashed rounded-lg mt-20 ">
+                    <div className="h-96 w-full max-w-2xl relative border-4 border-gray-300 border-dashed rounded-lg ">
                         <input ref={fileInputRef} type="file" onChange={handleFileChange} className="h-full w-full opacity-0 absolute z-10 cursor-pointer" />
                         <div className="h-full w-full bg-white absolute z-1 flex justify-center items-center top-0 rounded-lg">
                             <div className="flex flex-col items-center">
@@ -249,6 +287,7 @@ export const DocumentScanner4 = () => {
                                 left: 0,
                                 width: '800px',
                                 height: '500px',
+                                border: '2px solid gray'
                             }}
                         />
                         {cornerPoints.map((circle, index) => (
@@ -279,32 +318,42 @@ export const DocumentScanner4 = () => {
 
 
             {/* Footer */}
-            <footer className="flex absolute bottom-0 w-full justify-end bg-white p-6 border-t space-x-4  ">
-                <Button 
-                    className="space-x-2"
-                    onClick={() => onHandleScanImage()}
-                >
-                    <LuScanLine className="w-6 h-6" />
-                    <span>Scan Image</span>                    
-                </Button>
-                <Button 
-                    className="space-x-2"
-                    onClick={() => onHandleCropImage()}
-                >
-                    <FiCrop className="w-6 h-6" />
-                    <span>Crop Image</span>                    
-                </Button>
-
-                {isFileSelected && (
+            <footer className="flex absolute1 bottom-01 w-full justify-end p-2 space-x-4  ">
+                <div className="flex w-2/3 p-4 bg-white border shadow-md items-center justify-center align-middle space-x-3 mx-auto rounded-md ">
                     <Button 
                         className="space-x-2"
-                        onClick={() => onHandleResetImage()}
+                        onClick={() => onHandleScanImage()}
                     >
-                        <LiaUndoAltSolid className="w-6 h-6" />
-                        <span>Reset</span>
-                                          
+                        <LuScanLine className="w-6 h-6" />
+                        <span>Scan Image</span>                    
                     </Button>
-                )}
+                    <Button 
+                        className="space-x-2"
+                        onClick={() => onHandleCropImage()}
+                    >
+                        <FiCrop className="w-6 h-6" />
+                        <span>Crop Image</span>                    
+                    </Button>
+                    <Button 
+                        className="space-x-2"
+                        onClick={() => handleDownloadFile()}
+                    >
+                        <GrDownload className="w-5 h-5" />
+                        <span>Download Image</span>
+                    </Button>
+
+                    {isFileSelected && (
+                        <Button 
+                            variant="destructive"
+                            className="space-x-2"
+                            onClick={() => onHandleResetImage()}
+                        >
+                            <LiaUndoAltSolid className="w-6 h-6" />
+                            <span>Reset</span>
+                                            
+                        </Button>
+                    )}
+                </div>
             </footer>
         </div>
     );
@@ -428,46 +477,6 @@ class documentScanner {
         return Math.hypot(p1.x - p2.x, p1.y - p2.y);
     }
 
-    // cropImage(canvas: HTMLCanvasElement, points: Point[]) {
-    //     const ctx = canvas?.getContext('2d');
-    //     if (canvas && ctx && points.length === 4) {
-    //         const src = this.cv.imread(canvas);
-    //         const dst = new this.cv.Mat();
-    //         const pts1 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
-    //             points[0].x, points[0].y,
-    //             points[1].x, points[1].y,
-    //             points[2].x, points[2].y,
-    //             points[3].x, points[3].y
-    //         ]);
-    //         const width = Math.max(
-    //             this.getDistance(points[0], points[1]),
-    //             this.getDistance(points[2], points[3])
-    //         );
-    //         const height = Math.max(
-    //             this.getDistance(points[0], points[3]),
-    //             this.getDistance(points[1], points[2])
-    //         );
-    //         const pts2 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
-    //             0, 0,
-    //             width, 0,
-    //             width, height,
-    //             0, height
-    //         ]);
-    //         const M = this.cv.getPerspectiveTransform(pts1, pts2);
-
-    //         ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //         canvas.width = width;
-    //         canvas.height = height;
-
-    //         this.cv.warpPerspective(src, dst, M, new this.cv.Size(width, height));
-    //         this.cv.imshow(canvas, dst);
-    //         src.delete();
-    //         dst.delete();
-    //         pts1.delete();
-    //         pts2.delete();
-    //         M.delete();
-    //     }
-    // }
     cropImage(canvas: HTMLCanvasElement, points: Point[]) {
         const ctx = canvas?.getContext('2d');
         if (canvas && ctx && points.length === 4) {
@@ -513,4 +522,57 @@ class documentScanner {
             M.delete();
         }
     }    
+    // cropImage(canvas: HTMLCanvasElement, points: Point[], img:any) {
+    //     const ctx = canvas?.getContext('2d');
+    //     if (canvas && ctx && points.length === 4) {
+    //         // Load the original image again to clear all drawn elements like points and lines
+    //         // const img = new Image();
+    //         // img.src = this.imageSrc; // Assuming you have the image source saved in this.imageSrc
+    //         img.onload = () => {
+    //             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the entire canvas
+    //             ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Redraw the original image
+    
+    //             const src = this.cv.imread(canvas);
+    //             const dst = new this.cv.Mat();
+    //             const pts1 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+    //                 points[0].x, points[0].y,
+    //                 points[1].x, points[1].y,
+    //                 points[2].x, points[2].y,
+    //                 points[3].x, points[3].y,
+    //             ]);
+    //             const width = Math.max(
+    //                 this.getDistance(points[0], points[1]),
+    //                 this.getDistance(points[2], points[3])
+    //             );
+    //             const height = Math.max(
+    //                 this.getDistance(points[0], points[3]),
+    //                 this.getDistance(points[1], points[2])
+    //             );
+    //             const pts2 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+    //                 0, 0,
+    //                 width, 0,
+    //                 width, height,
+    //                 0, height,
+    //             ]);
+    //             const M = this.cv.getPerspectiveTransform(pts1, pts2);
+    
+    //             // Clear the canvas again for cropping
+    //             ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    //             // Resize the canvas to the new dimensions
+    //             canvas.width = width;
+    //             canvas.height = height;
+    
+    //             this.cv.warpPerspective(src, dst, M, new this.cv.Size(width, height));
+    //             this.cv.imshow(canvas, dst);
+    
+    //             // Cleanup OpenCV objects
+    //             src.delete();
+    //             dst.delete();
+    //             pts1.delete();
+    //             pts2.delete();
+    //             M.delete();
+    //         };
+    //     }
+    // }    
 }
