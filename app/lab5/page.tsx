@@ -12,8 +12,8 @@ const Lab5Page = () => {
 
         if (canvas) {
             // Initialize the canvas
-            canvas.width = 800;
-            canvas.height = 600;
+            canvas.width = 600;
+            canvas.height = 500;
 
             const ctx = canvas.getContext('2d');
             if (ctx) {
@@ -43,8 +43,8 @@ const Lab5Page = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Redraw background
-        ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // ctx.fillStyle = '#f0f0f0';
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw lines between circles
         ctx.strokeStyle = 'blue';
@@ -78,13 +78,13 @@ const Lab5Page = () => {
     };
     return (
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <h1>800x600 Blank Canvas</h1>
+            <h1>600x500 Blank Canvas</h1>
             <div
                 style={{
                     position: 'relative',
-                    width: '800px',
-                    height: '600px',
-                    border: '1px solid black',
+                    width: '600px',
+                    height: '500px',
+                    border: '2px solid red',
                     margin: '20px auto',
                 }}
             >
@@ -94,8 +94,8 @@ const Lab5Page = () => {
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: '800px',
-                        height: '600px',
+                        width: '600px',
+                        height: '500px',
                         border: '1px solid black'
                     }}                    
                     // onMouseDown={handleMouseDown}
