@@ -1,11 +1,12 @@
+"use client"
 
 // import components
-import { DocumentScanner, DocumentScanner3 } from "@/components/document-scanner";
+import { DocumentScanner4, DocumentScanner3 } from "@/components/document-scanner";
 
 export default function Home() {
 	return (
 		<main className="">
-			<DocumentScanner3 />
+			<DocumentScanner4 />
 		</main>
 	);
 }
