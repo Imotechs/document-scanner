@@ -10,17 +10,24 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "heroicons": "^2.1.5",
     "http-proxy-agent": "^7.0.2",
     "jscanify": "^1.2.0",
     "jsdom": "^24.1.1",
+    "lucide-react": "^0.427.0",
     "next": "14.2.5",
     "opencv-react": "^0.0.6",
     "opencv.js": "^1.2.1",
     "react": "^18",
     "react-dom": "^18",
     "react-draggable": "^4.4.6",
-    "react-perspective-cropper": "^0.2.2"
+    "react-icons": "^5.2.1",
+    "react-perspective-cropper": "^0.2.2",
+    "tailwind-merge": "^2.4.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.6.0",
