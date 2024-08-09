@@ -19,6 +19,7 @@
     "opencv.js": "^1.2.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-draggable": "^4.4.6",
     "react-perspective-cropper": "^0.2.2"
   },
   "devDependencies": {
