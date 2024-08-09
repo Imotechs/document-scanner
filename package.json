@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.4.0",
     "heroicons": "^2.1.5",
     "http-proxy-agent": "^7.0.2",
     "jscanify": "^1.2.0",
@@ -18,6 +19,7 @@
     "opencv.js": "^1.2.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-draggable": "^4.4.6",
     "react-perspective-cropper": "^0.2.2"
   },
   "devDependencies": {

@@ -220,7 +220,7 @@ class documentScanner {
 
     // cv variables
     maxContour: any;
-    points: any;
+    points: Point[] | null = null;
 
     constructor() {
         this.isOpenCVLoaded = false
