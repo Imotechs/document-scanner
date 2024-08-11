@@ -17,7 +17,12 @@ import { LiaUndoAltSolid } from "react-icons/lia";
 import { GoDotFill } from "react-icons/go";
 import { GrDownload } from "react-icons/gr";
 
-export const DocumentScanner4 = () => {
+
+import * as pdfjsLib from 'pdfjs-dist/webpack';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf-worker.js';
+
+
+export const DocumentPDF = () => {
     const [isOpencvLoaded, setIsOpencvLoaded] = useState(false);
     const [isFileSelected, setIsFileSelected] = useState(false);
     const [cornerPoints, setCornerPoints] = useState<Point[]>([]);
@@ -34,18 +39,6 @@ export const DocumentScanner4 = () => {
     const docScanner = new documentScanner();
 
 
-    // useEffect(() => {
-    //     if (typeof window !== 'undefined') {
-    //         // Ensure the code runs only on the client side
-    //         loadOpenCV()
-    //             .then(() => {
-    //                 setIsOpencvLoaded(true);
-    //             })
-    //             .catch((err) => {
-    //                 console.error('Failed to load OpenCV.js', err);
-    //             });
-    //     }
-    // }, []);    
     useEffect(() => {
         checkOpenCVLoaded();
     }, []);
@@ -80,49 +73,74 @@ export const DocumentScanner4 = () => {
         }
     };
     
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    function loadPDFFile(file:any){
+        const reader = new FileReader();
+            reader.onload = async (e) => {
+              const pdf = await pdfjsLib.getDocument(e.target?.result as string).promise;
+              const page = await pdf.getPage(1);
+              const viewport = page.getViewport({ scale: 2 });
+    
+              const canvas = canvasRef.current;
+              if (canvas) {
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+    
+                const context = canvas.getContext('2d');
+                if (context) {
+                  await page.render({ canvasContext: context, viewport }).promise;
+                  setImageSrc(canvas.toDataURL('image/png'));
+                }
+              }
+            };
+            reader.readAsArrayBuffer(file);
+    }
+    
+    function loadIMGFile(file:any){
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = canvasRef.current;
+            if (canvas) {
+              // Initialize the canvas
+              canvas.width = 800;
+              canvas.height = 500;
+    
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                setImageSrc(e.target?.result as string);
+              }
+            }
+          };
+          if (e.target?.result) {
+            img.src = e.target.result as string;
+          }
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setIsFileSelected(true);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = canvasRef.current;
-                    if (canvas) {
-                        // Initialize the canvas
-                        canvas.width = 800;
-                        canvas.height = 500;
-                        // canvas.width = img.width;
-                        // canvas.height = img.height;
-
-                        const ctx = canvas.getContext('2d');
-                        if (ctx) {
-                            // ctx.clearRect(0, 0, canvas.width, canvas.height);
-                            // canvas.width = img.width;
-                            // canvas.height = img.height;
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            setImageSrc(e.target?.result as string);
-
-                            // // Calculate scaling factors based on image and canvas dimensions
-                            // const scaleX = canvas.width / img.width;
-                            // const scaleY = canvas.height / img.height;
-
-                            // Store scaling factors for later use
-                            // setScaling({ scaleX, scaleY });
-                        }
-                    }
-                };
-                if (e.target?.result) {
-                    img.src = e.target.result as string;
-                }
-            };
-            reader.readAsDataURL(file);
-        } else {
+          setIsFileSelected(true);
+          const fileType = file.type;
+    
+          if (fileType === 'application/pdf') {
+            // Handle PDF file
+            loadPDFFile(file)
+          } else if (fileType.startsWith('image/')) {
+            // Handle image file
+            loadIMGFile(file)
+          } else {
+            console.error('Unsupported file type');
             setIsFileSelected(false);
+          }
+        } else {
+          setIsFileSelected(false);
         }
-    };
+      };
+    
 
     const onHandleResetImage = () => {
         setIsFileSelected(false);
@@ -522,57 +540,5 @@ class documentScanner {
             M.delete();
         }
     }    
-    // cropImage(canvas: HTMLCanvasElement, points: Point[], img:any) {
-    //     const ctx = canvas?.getContext('2d');
-    //     if (canvas && ctx && points.length === 4) {
-    //         // Load the original image again to clear all drawn elements like points and lines
-    //         // const img = new Image();
-    //         // img.src = this.imageSrc; // Assuming you have the image source saved in this.imageSrc
-    //         img.onload = () => {
-    //             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the entire canvas
-    //             ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Redraw the original image
     
-    //             const src = this.cv.imread(canvas);
-    //             const dst = new this.cv.Mat();
-    //             const pts1 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
-    //                 points[0].x, points[0].y,
-    //                 points[1].x, points[1].y,
-    //                 points[2].x, points[2].y,
-    //                 points[3].x, points[3].y,
-    //             ]);
-    //             const width = Math.max(
-    //                 this.getDistance(points[0], points[1]),
-    //                 this.getDistance(points[2], points[3])
-    //             );
-    //             const height = Math.max(
-    //                 this.getDistance(points[0], points[3]),
-    //                 this.getDistance(points[1], points[2])
-    //             );
-    //             const pts2 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
-    //                 0, 0,
-    //                 width, 0,
-    //                 width, height,
-    //                 0, height,
-    //             ]);
-    //             const M = this.cv.getPerspectiveTransform(pts1, pts2);
-    
-    //             // Clear the canvas again for cropping
-    //             ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    //             // Resize the canvas to the new dimensions
-    //             canvas.width = width;
-    //             canvas.height = height;
-    
-    //             this.cv.warpPerspective(src, dst, M, new this.cv.Size(width, height));
-    //             this.cv.imshow(canvas, dst);
-    
-    //             // Cleanup OpenCV objects
-    //             src.delete();
-    //             dst.delete();
-    //             pts1.delete();
-    //             pts2.delete();
-    //             M.delete();
-    //         };
-    //     }
-    // }    
 }
