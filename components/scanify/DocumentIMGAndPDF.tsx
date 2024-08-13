@@ -17,12 +17,14 @@ import { LiaUndoAltSolid } from "react-icons/lia";
 import { GoDotFill } from "react-icons/go";
 import { GrDownload } from "react-icons/gr";
 
+//pdf libraries
 import jsPDF from 'jspdf';
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf-worker.js';
 
 
-export const DocumentPDF = () => {
+
+export const DocumentIMGAndPDF = () => {
     const [isOpencvLoaded, setIsOpencvLoaded] = useState(false);
     const [isFileSelected, setIsFileSelected] = useState(false);
     const [cornerPoints, setCornerPoints] = useState<Point[]>([]);
@@ -30,14 +32,15 @@ export const DocumentPDF = () => {
     const [circles, setCircles] = useState<Point[]>([]);
 
     const [imageSrc, setImageSrc] = useState<string | null>(null);
-    const [uploadedFileType, setuploadedFileType] = useState<string | null>(null);
     // const [scaling, setScaling] = useState({ scaleX: 1, scaleY: 1 });
+    const [uploadedFileType, setuploadedFileType] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     // doc scanner object
     const docScanner = new documentScanner();
+
 
 
     useEffect(() => {
@@ -78,9 +81,7 @@ export const DocumentPDF = () => {
         const canvas = canvasRef.current;
         if (canvas) {
             setCornerPoints([])
-            //onHandleScanImage()
-           const points= docScanner.scanLowerPartImage(canvas);
-           console.log("points -- ", points)
+            const points = docScanner.scanLowerPartImage(canvas);
             setCornerPoints(points)
             handleDrawCircles(points); // Use detected points to draw circles
 
@@ -93,83 +94,91 @@ export const DocumentPDF = () => {
         const cornerPointsToCrop = cornerPoints
         if (canvas) {
             setCornerPoints([])
-            docScanner.cropAndProcessPDF(canvas,cornerPointsToCrop)
+            docScanner.cropAndProcessPDF(canvas, cornerPointsToCrop)
 
 
         }
     };
 
-    
-    function loadPDFFile(file:any){
+
+
+    function loadPDFFile(file: File) {
         const reader = new FileReader();
-            reader.onload = async (e) => {
-              const pdf = await pdfjsLib.getDocument(e.target?.result as string).promise;
-              
-              const page = await pdf.getPage(1);
-              const viewport = page.getViewport({ scale: 2 });
-    
-              const canvas = canvasRef.current;
-              if (canvas) {
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-    
-                const context = canvas.getContext('2d');
-                if (context) {
-                  await page.render({ canvasContext: context, viewport }).promise;
-                  setImageSrc(canvas.toDataURL('image/png'));
-                }
-              }
-            };
-            reader.readAsArrayBuffer(file);
-    }
-    
-    function loadIMGFile(file:any){
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
+        reader.onload = async (e) => {
+            //const pdf = await pdfjsLib.getDocument(e.target?.result as string).promise;
+            const pdf = await pdfjsLib.getDocument(new Uint8Array(e.target?.result as ArrayBuffer)).promise;
+
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 2 });
+
             const canvas = canvasRef.current;
             if (canvas) {
-              // Initialize the canvas
-              
-    
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                setImageSrc(e.target?.result as string);
-              }
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const context = canvas.getContext('2d');
+                if (context) {
+                    await page.render({ canvasContext: context, viewport }).promise;
+                    setImageSrc(canvas.toDataURL('image/png'));
+                }
             }
-          };
-          if (e.target?.result) {
-            img.src = e.target.result as string;
-          }
+
+        };
+        reader.readAsArrayBuffer(file);
+
+    }
+
+    function loadIMGFile(file: File) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = canvasRef.current;
+                if (canvas) {
+                    // Initialize the canvas
+                    canvas.width = 800;
+                    canvas.height = 500;
+
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        setImageSrc(e.target?.result as string);
+                    }
+                }
+            };
+            if (e.target?.result) {
+                img.src = e.target.result as string;
+            }
         };
         reader.readAsDataURL(file);
     }
-    
+
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCornerPoints([])
         const file = event.target.files?.[0];
         if (file) {
-          setIsFileSelected(true);
-          const fileType = file.type;
-          setuploadedFileType(fileType)
-          console.log(file.type)
+            setIsFileSelected(true);
+            const fileType = file.type;
+            setuploadedFileType(fileType)
+            console.log(file.type)
 
-          if (fileType === 'application/pdf') {
-            // Handle PDF file
-            loadPDFFile(file)
-          } else if (fileType.startsWith('image/')) {
-            // Handle image file
-            loadIMGFile(file)
-          } else {
-            console.error('Unsupported file type');
-            setIsFileSelected(false);
-          }
+            if (fileType === 'application/pdf') {
+                // Handle PDF file
+                loadPDFFile(file)
+            } else if (fileType.startsWith('image/')) {
+                // Handle image file
+                loadIMGFile(file)
+            } else {
+                console.error('Unsupported file type');
+                setIsFileSelected(false);
+            }
         } else {
-          setIsFileSelected(false);
+            setIsFileSelected(false);
         }
-      };
-    
+    };
+
+
 
     const onHandleResetImage = () => {
         setIsFileSelected(false);
@@ -190,7 +199,7 @@ export const DocumentPDF = () => {
         drawCirclesAndLines(circlesData);
     };
 
-    const drawCirclesAndLines = (circles: { x: number; y: number;}[]) => {
+    const drawCirclesAndLines = (circles: { x: number; y: number; }[]) => {
         console.log(circles)
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -202,7 +211,7 @@ export const DocumentPDF = () => {
             const img = new Image();
             img.src = imageSrc;
             img.onload = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                //ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                 // Draw lines between circles
@@ -222,8 +231,6 @@ export const DocumentPDF = () => {
                     ctx.beginPath();
                     ctx.arc(circle.x, circle.y, 5, 0, 2 * Math.PI);
                     ctx.fill();
-                    //ctx.stroke();                
-
                 });
             };
         }
@@ -240,13 +247,18 @@ export const DocumentPDF = () => {
         drawCirclesAndLines(updatedCircles);
         setCornerPoints(updatedCircles)
     };
+
+
+
+
+
     const handleDownloadFile = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-    
+
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-    
+
         // Draw watermark
         ctx.font = 'bold 40px Arial';
         ctx.fillStyle = 'red';
@@ -255,9 +267,9 @@ export const DocumentPDF = () => {
         const watermarkText = 'Document Scanner';
         const x = canvas.width / 2;
         const y = canvas.height - 50; // Adjust the position as needed
-    
+
         ctx.fillText(watermarkText, x, y);
-    
+
         // Check the file type
         if (uploadedFileType === 'application/pdf') {
             // Create an image from the canvas
@@ -267,7 +279,7 @@ export const DocumentPDF = () => {
             const pdf = new jsPDF();
             pdf.addImage(imageFileUrl, 'JPEG', 0, 0, canvas.width, canvas.height);
             pdf.save(`scanner-document.pdf`);
-            
+
         } else if (['png', 'jpeg', 'jpg'].some(ext => uploadedFileType?.endsWith(ext))) {
             // Create an image from the canvas
             const imageFileUrl = canvas.toDataURL(`image/png`);
@@ -277,10 +289,10 @@ export const DocumentPDF = () => {
             link.href = imageFileUrl;
             link.download = `scanner-image.${fileExt}`;
             return link.click();
-            
+
         }
     };
-       
+
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
@@ -293,9 +305,9 @@ export const DocumentPDF = () => {
                     </h1>
                     <div className="flex text-sm text-gray-500 mt-1 space-x-2">
                         <span className="font-medium">Scanner status : </span>
-                        {   
-                            isOpencvLoaded ? 
-                                <span className="flex"><GoDotFill className="w-5 h-5 text-green-600" /> Ready </span>  : 
+                        {
+                            isOpencvLoaded ?
+                                <span className="flex"><GoDotFill className="w-5 h-5 text-green-600" /> Ready </span> :
                                 <span className="flex"><GoDotFill className="w-5 h-5  text-red-600" /> Loading... </span>
                         }
                     </div>
@@ -309,9 +321,9 @@ export const DocumentPDF = () => {
                             <div className="h-full w-full bg-white absolute z-1 flex justify-center items-center top-0 rounded-lg">
                                 <div className="flex flex-col items-center ">
 
-                                    
+
                                     <span className="text-2xl text-gray-500 ">Loading</span>
-                                    
+
                                 </div>
                             </div>
                         </div> : ""
@@ -334,19 +346,19 @@ export const DocumentPDF = () => {
                         style={{
                             position: 'relative',
                             width: '800px',
-                            height: '800px',
+                            height: '500px',
                             margin: '20px auto',
                         }}
                     >
                         <canvas
-                            ref={canvasRef} 
+                            ref={canvasRef}
                             // className="w-[800px] h-[600px]"
                             style={{
                                 position: 'absolute',
                                 top: 0,
                                 left: 0,
                                 width: '800px',
-                                height: '800px',
+                                height: '500px',
                                 border: '2px solid gray'
                             }}
                         />
@@ -369,7 +381,7 @@ export const DocumentPDF = () => {
                                         left: 0,
                                     }}
                                 />
-                                
+
                             </Draggable>
                         ))}
                     </div>
@@ -380,47 +392,44 @@ export const DocumentPDF = () => {
             {/* Footer */}
             <footer className="flex absolute1 bottom-01 w-full justify-end p-2 space-x-4  ">
                 <div className="flex w-2/3 p-4 bg-white border shadow-md items-center justify-center align-middle space-x-3 mx-auto rounded-md ">
-                {uploadedFileType?.includes('pdf')?(
-                    <Button 
-                    className="space-x-2"
-                    onClick={() => onHandleScanPDF()}
-                >
-                    <LuScanLine className="w-6 h-6" />
-                    <span>Scan File</span>                    
-                </Button>
-                ):( <Button 
-                    className="space-x-2"
-                    onClick={() => onHandleScanImage()}
-                >
-                    <LuScanLine className="w-6 h-6" />
-                    <span>Scan Image</span>                    
-                </Button>)
-                
-                
-                }
+                    {uploadedFileType?.includes('pdf') ? (
+                        <Button
+                            className="space-x-2"
+                            onClick={() => onHandleScanPDF()}
+                        >
+                            <LuScanLine className="w-6 h-6" />
+                            <span>Scan File</span>
+                        </Button>
+                    ) : (<Button
+                        className="space-x-2"
+                        onClick={() => onHandleScanImage()}
+                    >
+                        <LuScanLine className="w-6 h-6" />
+                        <span>Scan Image</span>
+                    </Button>)
 
-            {uploadedFileType?.includes('pdf')?(
-                      <Button 
-                      className="space-x-2"
-                      onClick={() => onHandleCropPDF()}
-                  >
-                      <FiCrop className="w-6 h-6" />
-                      <span>Crop File</span>                    
-                  </Button>
-                ):(   <Button 
-                    className="space-x-2"
-                    onClick={() => onHandleCropImage()}
-                >
-                    <FiCrop className="w-6 h-6" />
-                    <span>Crop Image</span>                    
-                </Button>)
-                
-                
-                }
 
-                    
-                  
-                    <Button 
+                    }
+
+                    {uploadedFileType?.includes('pdf') ? (
+                        <Button
+                            className="space-x-2"
+                            onClick={() => onHandleCropPDF()}
+                        >
+                            <FiCrop className="w-6 h-6" />
+                            <span>Crop File</span>
+                        </Button>
+                    ) : (<Button
+                        className="space-x-2"
+                        onClick={() => onHandleCropImage()}
+                    >
+                        <FiCrop className="w-6 h-6" />
+                        <span>Crop Image</span>
+                    </Button>)
+
+
+                    }
+                    <Button
                         className="space-x-2"
                         onClick={() => handleDownloadFile()}
                     >
@@ -429,14 +438,14 @@ export const DocumentPDF = () => {
                     </Button>
 
                     {isFileSelected && (
-                        <Button 
+                        <Button
                             variant="destructive"
                             className="space-x-2"
                             onClick={() => onHandleResetImage()}
                         >
                             <LiaUndoAltSolid className="w-6 h-6" />
                             <span>Reset</span>
-                                            
+
                         </Button>
                     )}
                 </div>
@@ -473,6 +482,7 @@ class documentScanner {
     }
 
     scanImage(canvas: HTMLCanvasElement) {
+        // this.canvas = canvas;
         const src = this.cv.imread(canvas);
 
         const gray = new this.cv.Mat();
@@ -505,76 +515,6 @@ class documentScanner {
 
         src.delete();
 
-        return this.points;
-    }
-
-    scanLowerPartImage(canvas: HTMLCanvasElement) {
-        const src = this.cv.imread(canvas);
-
-        // Crop the image to the lower 35%
-        const height = src.rows;
-        const width = src.cols;
-        const yStart = Math.floor(height * 0.74); // Start at 65% from the top to include the bottom 35%
-        const cropped = src.roi(new this.cv.Rect(0, yStart, width, height - yStart));
-    
-        const gray = new this.cv.Mat();
-        this.cv.cvtColor(cropped, gray, this.cv.COLOR_RGBA2GRAY);
-    
-        const blur = new this.cv.Mat();
-        this.cv.GaussianBlur(gray, blur, new this.cv.Size(5, 5), 0, 0, this.cv.BORDER_DEFAULT);
-    
-        const thresh = new this.cv.Mat();
-        this.cv.threshold(blur, thresh, 0, 255, this.cv.THRESH_BINARY + this.cv.THRESH_OTSU);
-    
-        let contours = new this.cv.MatVector();
-        let hierarchy = new this.cv.Mat();
-    
-        this.cv.findContours(thresh, contours, hierarchy, this.cv.RETR_CCOMP, this.cv.CHAIN_APPROX_SIMPLE);
-    
-        let maxArea = 0;
-        let maxContourIndex = -1;
-        for (let i = 0; i < contours.size(); ++i) {
-            let contourArea = this.cv.contourArea(contours.get(i));
-            if (contourArea > maxArea) {
-                maxArea = contourArea;
-                maxContourIndex = i;
-            }
-        }
-    
-        if (maxContourIndex === -1) {
-            // No valid contours were found, return an empty array or handle as needed
-            src.delete();
-            cropped.delete();
-            gray.delete();
-            blur.delete();
-            thresh.delete();
-            contours.delete();
-            hierarchy.delete();
-            console.error('No contours found in the image.');
-            return [];
-        }
-    
-        this.maxContour = contours.get(maxContourIndex);
-    
-        // Adjust the detected points to the original image coordinates
-        //this.points = this.detectCornerPoints(this.maxContour);
-
-        this.points = this.detectCornerPoints(this.maxContour).map(point => ({
-            x: point.x,
-            y: (point.y + yStart)*0.90
-        }));
-        
-        this.isImageScanned = true;
-    
-        // Clean up memory
-        src.delete();
-        cropped.delete();
-        gray.delete();
-        blur.delete();
-        thresh.delete();
-        contours.delete();
-        hierarchy.delete();
-    
         return this.points;
     }
 
@@ -631,6 +571,7 @@ class documentScanner {
     getDistance(p1: Point, p2: Point) {
         return Math.hypot(p1.x - p2.x, p1.y - p2.y);
     }
+
     cropImage(canvas: HTMLCanvasElement, points: Point[]) {
         const ctx = canvas?.getContext('2d');
         if (canvas && ctx && points.length === 4) {
@@ -657,17 +598,17 @@ class documentScanner {
                 0, height,
             ]);
             const M = this.cv.getPerspectiveTransform(pts1, pts2);
-    
+
             // Clear the canvas entirely, removing any previous drawings
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
             // Resize the canvas to the new dimensions
             canvas.width = width;
             canvas.height = height;
-    
+
             this.cv.warpPerspective(src, dst, M, new this.cv.Size(width, height));
             this.cv.imshow(canvas, dst);
-    
+
             // Cleanup OpenCV objects
             src.delete();
             dst.delete();
@@ -675,55 +616,146 @@ class documentScanner {
             pts2.delete();
             M.delete();
         }
-    }    
-   
+    }
+
+    scanLowerPartImage(canvas: HTMLCanvasElement) {
+        const src = this.cv.imread(canvas);
+
+        // Crop the image to the lower 35% after i checked on several trials
+        const height = src.rows;
+        const width = src.cols;
+        const yStart = Math.floor(height * 0.74); // Start at 65% from the top to include the bottom 35%
+        const cropped = src.roi(new this.cv.Rect(0, yStart, width, height - yStart));
+
+        const gray = new this.cv.Mat();
+        this.cv.cvtColor(cropped, gray, this.cv.COLOR_RGBA2GRAY);
+
+        const blur = new this.cv.Mat();
+        this.cv.GaussianBlur(gray, blur, new this.cv.Size(5, 5), 0, 0, this.cv.BORDER_DEFAULT);
+
+        const thresh = new this.cv.Mat();
+        this.cv.threshold(blur, thresh, 0, 255, this.cv.THRESH_BINARY + this.cv.THRESH_OTSU);
+
+        let contours = new this.cv.MatVector();
+        let hierarchy = new this.cv.Mat();
+
+        this.cv.findContours(thresh, contours, hierarchy, this.cv.RETR_CCOMP, this.cv.CHAIN_APPROX_SIMPLE);
+
+        let maxArea = 0;
+        let maxContourIndex = -1;
+        for (let i = 0; i < contours.size(); ++i) {
+            let contourArea = this.cv.contourArea(contours.get(i));
+            if (contourArea > maxArea) {
+                maxArea = contourArea;
+                maxContourIndex = i;
+            }
+        }
+
+        if (maxContourIndex === -1) {
+            src.delete();
+            cropped.delete();
+            gray.delete();
+            blur.delete();
+            thresh.delete();
+            contours.delete();
+            hierarchy.delete();
+            console.error('No contours found in the image.');
+            return [];
+        }
+
+        this.maxContour = contours.get(maxContourIndex);
+
+
+        this.points = this.detectCornerPoints(this.maxContour).map(point => ({
+            x: point.x,
+            y: (point.y + yStart) * 0.90
+        }));
+
+        this.isImageScanned = true;
+
+        // Clean up memory
+        src.delete();
+        cropped.delete();
+        gray.delete();
+        blur.delete();
+        thresh.delete();
+        contours.delete();
+        hierarchy.delete();
+
+        return this.points;
+    }
+
     cropAndProcessPDF(canvas: HTMLCanvasElement, points: Point[]) {
         const ctx = canvas?.getContext('2d');
         if (canvas && ctx && points.length === 4) {
             const src = this.cv.imread(canvas);
-    
+
             // Create a Rect using the provided points
             const [topLeft, topRight, bottomRight, bottomLeft] = points;
-    
+
             // Define a bounding rectangle based on the provided points
             const xMin = Math.min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
             const xMax = Math.max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
             const yMin = Math.min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
             const yMax = Math.max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-    
+
             const cropRect = new this.cv.Rect(xMin, yMin, xMax - xMin, yMax - yMin);
             const cropped = src.roi(cropRect);
-    
+
             // Divide the cropped image into left and right parts (50:50 division)
             const croppedWidth = cropped.cols;
             const croppedHeight = cropped.rows;
             const leftPart = cropped.roi(new this.cv.Rect(0, 0, Math.floor(croppedWidth * 0.5), croppedHeight));
             const rightPart = cropped.roi(new this.cv.Rect(Math.floor(croppedWidth * 0.5), 0, Math.floor(croppedWidth * 0.5), croppedHeight));
-    
+
             // Create a new Mat to combine the right part below the left part
             const combined = new this.cv.Mat(croppedHeight * 2, leftPart.cols, cropped.type());
-    
+
             leftPart.copyTo(combined.rowRange(0, croppedHeight).colRange(0, leftPart.cols));
             rightPart.copyTo(combined.rowRange(croppedHeight, croppedHeight * 2).colRange(0, rightPart.cols));
-    
+
             // Clear the canvas and resize to match the new image
+
+            // Store the combined image for later download
+
+            // Calculate the perspective transformation matrix
+
+
+            const pts1 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+                topLeft.x, topLeft.y,
+                topRight.x, topRight.y,
+                bottomRight.x, bottomRight.y,
+                bottomLeft.x, bottomLeft.y,
+            ]);
+            const pts2 = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+                0, 0,
+                canvas.width, 0,
+                canvas.width, canvas.height,
+                0, canvas.height
+            ])
+            const dst = new this.cv.Mat();
+
+            const M = this.cv.getPerspectiveTransform(pts1, pts2);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             canvas.width = leftPart.cols;
             canvas.height = croppedHeight * 2;
-    
+
+            this.cv.warpPerspective(combined, dst, M, new this.cv.Size(canvas.width, canvas.height));
+
             // Display the final image on the canvas
             this.cv.imshow(canvas, combined);
-    
+
             // Cleanup
+
             src.delete();
             cropped.delete();
             leftPart.delete();
             rightPart.delete();
             combined.delete();
+            M.delete()
         } else {
             console.error("Invalid input: canvas context or points are not properly provided.");
         }
     }
-    
-    
+
 }
