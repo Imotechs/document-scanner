@@ -83,8 +83,8 @@ export const DocumentIMGAndPDF = () => {
             setCornerPoints([])
             const points = docScanner.scanLowerPartImage(canvas);
             setCornerPoints(points)
+            console.log("points:",points)
             handleDrawCircles(points); // Use detected points to draw circles
-
 
         }
     };
@@ -102,7 +102,7 @@ export const DocumentIMGAndPDF = () => {
 
 
 
-    function loadPDFFile(file: File) {
+    function loadPDFFile(file: File,img:any) {
         const reader = new FileReader();
         reader.onload = async (e) => {
             //const pdf = await pdfjsLib.getDocument(e.target?.result as string).promise;
@@ -119,8 +119,8 @@ export const DocumentIMGAndPDF = () => {
                 const context = canvas.getContext('2d');
                 if (context) {
                     await page.render({ canvasContext: context, viewport }).promise;
-                    setImageSrc(canvas.toDataURL('image/png'));
-                }
+                    img.src = canvas.toDataURL('image/png'); // Convert canvas content to image source
+                    setImageSrc(canvas.toDataURL('image/png'));                 }
             }
 
         };
@@ -128,10 +128,9 @@ export const DocumentIMGAndPDF = () => {
 
     }
 
-    function loadIMGFile(file: File) {
+    function loadIMGFile(file: File,img:any) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            const img = new Image();
             img.onload = () => {
                 const canvas = canvasRef.current;
                 if (canvas) {
@@ -157,6 +156,7 @@ export const DocumentIMGAndPDF = () => {
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         setCornerPoints([])
         const file = event.target.files?.[0];
+        const img = new Image();
         if (file) {
             setIsFileSelected(true);
             const fileType = file.type;
@@ -165,10 +165,10 @@ export const DocumentIMGAndPDF = () => {
 
             if (fileType === 'application/pdf') {
                 // Handle PDF file
-                loadPDFFile(file)
+                loadPDFFile(file,img)
             } else if (fileType.startsWith('image/')) {
                 // Handle image file
-                loadIMGFile(file)
+                loadIMGFile(file,img)
             } else {
                 console.error('Unsupported file type');
                 setIsFileSelected(false);
@@ -176,6 +176,9 @@ export const DocumentIMGAndPDF = () => {
         } else {
             setIsFileSelected(false);
         }
+
+        console.log(img)
+
     };
 
 
@@ -199,7 +202,7 @@ export const DocumentIMGAndPDF = () => {
         drawCirclesAndLines(circlesData);
     };
 
-    const drawCirclesAndLines = (circles: { x: number; y: number; }[]) => {
+    const drawCirclesAndLines = (circles: { x: number; y: number;}[]) => {
         console.log(circles)
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -211,7 +214,7 @@ export const DocumentIMGAndPDF = () => {
             const img = new Image();
             img.src = imageSrc;
             img.onload = () => {
-                //ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                 // Draw lines between circles
@@ -365,6 +368,7 @@ export const DocumentIMGAndPDF = () => {
                         {cornerPoints.map((circle, index) => (
                             <Draggable
                                 key={index}
+                                nodeRef={canvasRef} 
                                 position={{ x: circle.x - 5, y: circle.y - 5 }}
                                 onDrag={(e, data) => handleDrag(index, e, data)}
                                 bounds="parent"
@@ -620,27 +624,34 @@ class documentScanner {
 
     scanLowerPartImage(canvas: HTMLCanvasElement) {
         const src = this.cv.imread(canvas);
-
-        // Crop the image to the lower 35% after i checked on several trials
+    
+        // Calculate height and width
         const height = src.rows;
         const width = src.cols;
-        const yStart = Math.floor(height * 0.74); // Start at 65% from the top to include the bottom 35%
-        const cropped = src.roi(new this.cv.Rect(0, yStart, width, height - yStart));
-
+    
+        // Calculate the height for the bottom 35% of the image
+        const croppedHeight = Math.floor(height * 0.35);
+    
+        // Calculate the starting Y coordinate for cropping (bottom part of the image)
+        const yStart = height - croppedHeight;
+    
+        // Crop the image to the lower 35%
+        const cropped = src.roi(new this.cv.Rect(0, yStart, width, croppedHeight));
+    
         const gray = new this.cv.Mat();
         this.cv.cvtColor(cropped, gray, this.cv.COLOR_RGBA2GRAY);
-
+    
         const blur = new this.cv.Mat();
         this.cv.GaussianBlur(gray, blur, new this.cv.Size(5, 5), 0, 0, this.cv.BORDER_DEFAULT);
-
+    
         const thresh = new this.cv.Mat();
         this.cv.threshold(blur, thresh, 0, 255, this.cv.THRESH_BINARY + this.cv.THRESH_OTSU);
-
+    
         let contours = new this.cv.MatVector();
         let hierarchy = new this.cv.Mat();
-
+    
         this.cv.findContours(thresh, contours, hierarchy, this.cv.RETR_CCOMP, this.cv.CHAIN_APPROX_SIMPLE);
-
+    
         let maxArea = 0;
         let maxContourIndex = -1;
         for (let i = 0; i < contours.size(); ++i) {
@@ -650,7 +661,7 @@ class documentScanner {
                 maxContourIndex = i;
             }
         }
-
+    
         if (maxContourIndex === -1) {
             src.delete();
             cropped.delete();
@@ -662,17 +673,16 @@ class documentScanner {
             console.error('No contours found in the image.');
             return [];
         }
-
+    
         this.maxContour = contours.get(maxContourIndex);
 
-
-        this.points = this.detectCornerPoints(this.maxContour).map(point => ({
-            x: point.x,
-            y: (point.y + yStart) * 0.90
-        }));
-
+   this.points = this.detectCornerPoints(this.maxContour);
+    this.points = this.points.map(point => ({
+        x: point.x,
+        y: point.y + yStart
+    }));       
         this.isImageScanned = true;
-
+    
         // Clean up memory
         src.delete();
         cropped.delete();
@@ -681,10 +691,12 @@ class documentScanner {
         thresh.delete();
         contours.delete();
         hierarchy.delete();
-
+    
         return this.points;
     }
-
+    
+    
+    
     cropAndProcessPDF(canvas: HTMLCanvasElement, points: Point[]) {
         const ctx = canvas?.getContext('2d');
         if (canvas && ctx && points.length === 4) {
