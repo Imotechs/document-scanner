@@ -1,9 +1,13 @@
-// "use client"
+ "use client"
+
+const Lab3Page = () => {
+    return (<></>)
+}
+export default Lab3Page
 // import React,{useState,useEffect,useRef,useCallback} from 'react'
 // import {DownloadOutlined,BorderOutlined,ScanOutlined,RedoOutlined, StarTwoTone,UploadOutlined } from '@ant-design/icons';
 // import Cropper from 'react-perspective-cropper'
 // import { loadOpenCV } from '@/lib/opencv';
-
 
 // import { DocumentScanner } from '@/components/scanify/DocumentScanner';
 // interface CropState {

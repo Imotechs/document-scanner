@@ -24,7 +24,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf-worker.js';
 
 
 
-export const DocumentIMGAndPDF = () => {
+export default function DocumentIMGAndPDF(){
     const [isOpencvLoaded, setIsOpencvLoaded] = useState(false);
     const [isFileSelected, setIsFileSelected] = useState(false);
     const [cornerPoints, setCornerPoints] = useState<Point[]>([]);

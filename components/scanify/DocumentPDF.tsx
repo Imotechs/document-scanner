@@ -16,13 +16,13 @@ import { FiCrop } from "react-icons/fi";
 import { LiaUndoAltSolid } from "react-icons/lia";
 import { GoDotFill } from "react-icons/go";
 import { GrDownload } from "react-icons/gr";
-
 import jsPDF from 'jspdf';
+
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf-worker.js';
 
 
-export const DocumentPDF = () => {
+export default function DocumentPDF(){
     const [isOpencvLoaded, setIsOpencvLoaded] = useState(false);
     const [isFileSelected, setIsFileSelected] = useState(false);
     const [cornerPoints, setCornerPoints] = useState<Point[]>([]);
